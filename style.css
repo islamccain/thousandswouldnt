@@ -1,0 +1,103 @@
+@font-face {
+  font-family: "Brittany Signature";
+  src:
+    local("Brittany Signature"),
+    url("fonts/BrittanySignature.woff2") format("woff2"),
+    url("fonts/BrittanySignature.otf") format("opentype");
+  font-display: swap;
+}
+
+:root {
+  --daydream: #c0b5ae;
+  --day-court: #c9aab5;
+  --day-court-dark: #7d5a63;
+  --suriel-sunset: #c39a8e;
+  --suriel-sunset-dark: #8a5a49;
+  --mistcloak: #9cae9e;
+  --mistcloak-dark: #5f7266;
+  --illyrian-pine: #6f8478;
+  --illyrian-pine-dark: #3d5449;
+
+  --bg: #14110f;
+  --title-color: var(--suriel-sunset);
+  --eyebrow-color: var(--day-court);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--daydream);
+  font-family: "Cormorant Garamond", serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 6vh 6vw;
+}
+
+.eyebrow {
+  margin: 0 0 1.25rem;
+  font-size: clamp(0.7rem, 1.4vw, 0.95rem);
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: var(--eyebrow-color);
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  font-family: "Brittany Signature", "Mrs Saint Delafield", cursive;
+  font-weight: 400;
+  font-size: clamp(2rem, 6.5vw, 5.5rem);
+  line-height: 1;
+  color: var(--title-color);
+}
+
+.flourish {
+  height: 0.3em;
+  flex-shrink: 0;
+  color: inherit;
+  fill: currentColor;
+  opacity: 0.9;
+}
+
+.flourish-left {
+  width: 1.9em;
+  margin-right: -0.42em;
+}
+
+.flourish-right {
+  width: 1.9em;
+  margin-left: -0.3em;
+  transform: scaleX(-1);
+}
+
+@media (max-width: 560px) {
+  .flourish {
+    display: none;
+  }
+}
+
+.title-text {
+  position: relative;
+  z-index: 1;
+}

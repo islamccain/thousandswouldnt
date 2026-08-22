@@ -423,3 +423,18 @@ body {
   position: relative;
   z-index: 1;
 }
+
+.site-footer {
+  border-top: 1px solid rgba(192, 181, 174, 0.15);
+  padding: 2rem 1.5rem;
+}
+
+.site-footer p {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--daydream);
+  opacity: 0.6;
+}

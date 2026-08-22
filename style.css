@@ -132,10 +132,49 @@ body {
   min-height: 60vh;
 }
 
+.research-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(3rem, 10vh, 6rem) 1.5rem;
+}
+
+.studies-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  justify-content: center;
+}
+
+.studies-grid .btn-primary {
+  font-size: 0.95rem;
+  padding: 0.85em 1.8em;
+}
+
 .form-page {
   display: flex;
   justify-content: center;
   padding: clamp(1.5rem, 5vw, 3rem) 1rem;
+}
+
+.form-page-inner {
+  max-width: 100%;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: var(--daydream);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--suriel-sunset);
+  border-color: var(--suriel-sunset);
 }
 
 .form-embed {

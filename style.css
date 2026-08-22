@@ -13,19 +13,21 @@
 }
 
 :root {
-  --daydream: #c0b5ae;
-  --day-court: #c9aab5;
-  --day-court-dark: #7d5a63;
-  --suriel-sunset: #c39a8e;
-  --suriel-sunset-dark: #8a5a49;
-  --mistcloak: #9cae9e;
-  --mistcloak-dark: #5f7266;
-  --illyrian-pine: #6f8478;
-  --illyrian-pine-dark: #3d5449;
+  --daydream: #f4dcd9;
+  --daydream-dark: #aab2ba;
+  --day-court: #ecc4a8;
+  --day-court-dark: #4c5468;
+  --suriel-sunset: #dd90a0;
+  --suriel-sunset-dark: #4a2c2d;
+  --mistcloak: #eab6bc;
+  --mistcloak-dark: #5e3f47;
+  --illyrian-pine: #d9a8aa;
+  --illyrian-pine-dark: #4a3a38;
 
-  --bg: var(--illyrian-pine-dark);
-  --title-color: var(--daydream);
-  --eyebrow-color: var(--suriel-sunset);
+  --text: var(--illyrian-pine-dark);
+  --bg: var(--daydream);
+  --title-color: var(--suriel-sunset-dark);
+  --eyebrow-color: var(--day-court-dark);
 }
 
 * {
@@ -41,7 +43,7 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--bg);
-  color: var(--daydream);
+  color: var(--text);
   font-family: "Cormorant Garamond", serif;
   overflow-x: hidden;
 }
@@ -53,7 +55,7 @@ body {
   flex-wrap: wrap;
   gap: 0.75rem 2rem;
   padding: 1.1rem clamp(1.25rem, 4vw, 3rem);
-  border-bottom: 1px solid rgba(192, 181, 174, 0.15);
+  border-bottom: 1px solid rgba(74, 58, 56, 0.15);
 }
 
 .brand {
@@ -92,7 +94,7 @@ body {
 }
 
 .nav-link {
-  color: var(--daydream);
+  color: var(--text);
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -104,8 +106,8 @@ body {
 
 .nav-link:hover,
 .nav-link[aria-current="page"] {
-  color: var(--suriel-sunset);
-  border-color: var(--suriel-sunset);
+  color: var(--suriel-sunset-dark);
+  border-color: var(--suriel-sunset-dark);
 }
 
 .btn-primary {
@@ -153,7 +155,7 @@ body {
 .intro p {
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.8;
-  color: var(--daydream);
+  color: var(--text);
   opacity: 0.92;
   margin: 0 0 1.4rem;
 }
@@ -195,30 +197,30 @@ body {
 }
 
 .goal-list li:nth-child(1) .diamond {
-  background: var(--daydream);
+  background: var(--daydream-dark);
 }
 
 .goal-list li:nth-child(2) .diamond {
-  background: var(--day-court);
+  background: var(--day-court-dark);
 }
 
 .goal-list li:nth-child(3) .diamond {
-  background: var(--suriel-sunset);
+  background: var(--suriel-sunset-dark);
 }
 
 .goal-list li:nth-child(4) .diamond {
-  background: var(--mistcloak);
+  background: var(--mistcloak-dark);
 }
 
 .goal-list li:nth-child(5) .diamond {
-  background: var(--illyrian-pine);
+  background: var(--illyrian-pine-dark);
 }
 
 .goal-list p {
   margin: 0;
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.75;
-  color: var(--daydream);
+  color: var(--text);
   opacity: 0.92;
 }
 

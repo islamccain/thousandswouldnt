@@ -261,7 +261,7 @@
   </nav>
 
   <div id="video-container">
-    <video id="bg-video" autoplay muted loop playsinline disablepictureinpicture x-webkit-airplay="deny"></video>
+    <video id="bg-video" muted loop playsinline disablepictureinpicture x-webkit-airplay="deny"></video>
   </div>
 
   <div id="ui">
@@ -291,8 +291,13 @@
       if (!text) return;
       input.value = '';
       btn.disabled = true;
-      if (vKey === 'lightning') animateLightning(text);
-      else animateVoid(text);
+      if (vKey === 'lightning') {
+        bgVideo.currentTime = 0;
+        bgVideo.play().catch(() => {});
+        animateLightning(text);
+      } else {
+        animateVoid(text);
+      }
     }
 
     function animateVoid(text) {
@@ -405,12 +410,19 @@
     function loadVideo(key) {
       vKey = key;
       bgVideo.src = VIDEOS[key] || VIDEOS.galaxy;
+      bgVideo.loop = key !== 'lightning';
       bgVideo.load();
-      bgVideo.play().catch(() => {});
+      // Lightning stays dark and paused until a thought is released.
+      if (key !== 'lightning') bgVideo.play().catch(() => {});
       document.querySelectorAll('.menu-item[data-v]').forEach(item => {
         item.classList.toggle('active', item.dataset.v === key);
       });
     }
+
+    // Rewind lightning to its dark first frame once a strike finishes playing.
+    bgVideo.addEventListener('ended', () => {
+      if (vKey === 'lightning') bgVideo.currentTime = 0;
+    });
 
     loadVideo('galaxy');
 

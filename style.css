@@ -92,19 +92,27 @@ body {
 }
 
 .nav-link {
+  display: inline-block;
   color: var(--daydream);
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.8rem;
-  padding-bottom: 3px;
-  border-bottom: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.55em 1.2em;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 181, 174, 0.35);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.nav-link:hover,
-.nav-link[aria-current="page"] {
+.nav-link:hover {
+  border-color: var(--suriel-sunset);
   color: var(--suriel-sunset);
+}
+
+.nav-link[aria-current="page"] {
+  background: var(--suriel-sunset);
+  color: var(--suriel-sunset-dark);
   border-color: var(--suriel-sunset);
 }
 

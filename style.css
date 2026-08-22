@@ -13,21 +13,19 @@
 }
 
 :root {
-  /* Neutral base - deliberately not one of the named accents below,
-     so no single accent color has to double as the background. */
-  --bg: #f5efe6;
-  --text: #2a211f;
+  --daydream: #c0b5ae;
+  --day-court: #c9aab5;
+  --day-court-dark: #7d5a63;
+  --suriel-sunset: #c39a8e;
+  --suriel-sunset-dark: #8a5a49;
+  --mistcloak: #9cae9e;
+  --mistcloak-dark: #5f7266;
+  --illyrian-pine: #6f8478;
+  --illyrian-pine-dark: #3d5449;
 
-  /* Named accents, each with exactly one job. */
-  --oxblood: #7a2e3d;
-  --verdigris: #4f7268;
-  --slate: #55697a;
-  --ochre: #c8933f;
-  --ochre-ink: #4a3218;
-  --plum: #5c4058;
-
-  --title-color: var(--oxblood);
-  --eyebrow-color: var(--verdigris);
+  --bg: var(--illyrian-pine-dark);
+  --title-color: var(--daydream);
+  --eyebrow-color: var(--suriel-sunset);
 }
 
 * {
@@ -43,7 +41,7 @@ body {
   margin: 0;
   min-height: 100%;
   background: var(--bg);
-  color: var(--text);
+  color: var(--daydream);
   font-family: "Cormorant Garamond", serif;
   overflow-x: hidden;
 }
@@ -55,7 +53,7 @@ body {
   flex-wrap: wrap;
   gap: 0.75rem 2rem;
   padding: 1.1rem clamp(1.25rem, 4vw, 3rem);
-  border-bottom: 1px solid rgba(74, 58, 56, 0.15);
+  border-bottom: 1px solid rgba(192, 181, 174, 0.15);
 }
 
 .brand {
@@ -94,7 +92,7 @@ body {
 }
 
 .nav-link {
-  color: var(--text);
+  color: var(--daydream);
   text-decoration: none;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -106,14 +104,14 @@ body {
 
 .nav-link:hover,
 .nav-link[aria-current="page"] {
-  color: var(--slate);
-  border-color: var(--slate);
+  color: var(--suriel-sunset);
+  border-color: var(--suriel-sunset);
 }
 
 .btn-primary {
   display: inline-block;
-  background: var(--ochre);
-  color: var(--ochre-ink);
+  background: var(--suriel-sunset);
+  color: var(--suriel-sunset-dark);
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 600;
@@ -126,8 +124,8 @@ body {
 
 .btn-primary:hover,
 .btn-primary[aria-current="page"] {
-  background: var(--ochre-ink);
-  color: var(--ochre);
+  background: var(--suriel-sunset-dark);
+  color: var(--suriel-sunset);
 }
 
 .page-content {
@@ -155,7 +153,7 @@ body {
 .intro p {
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.8;
-  color: var(--text);
+  color: var(--daydream);
   opacity: 0.92;
   margin: 0 0 1.4rem;
 }
@@ -163,7 +161,7 @@ body {
 .intro p:last-child {
   margin-bottom: 0;
   font-style: italic;
-  color: var(--plum);
+  color: var(--eyebrow-color);
 }
 
 .goal {
@@ -197,30 +195,30 @@ body {
 }
 
 .goal-list li:nth-child(1) .diamond {
-  background: var(--oxblood);
+  background: var(--daydream);
 }
 
 .goal-list li:nth-child(2) .diamond {
-  background: var(--verdigris);
+  background: var(--day-court);
 }
 
 .goal-list li:nth-child(3) .diamond {
-  background: var(--ochre);
+  background: var(--suriel-sunset);
 }
 
 .goal-list li:nth-child(4) .diamond {
-  background: var(--slate);
+  background: var(--mistcloak);
 }
 
 .goal-list li:nth-child(5) .diamond {
-  background: var(--plum);
+  background: var(--illyrian-pine);
 }
 
 .goal-list p {
   margin: 0;
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.75;
-  color: var(--text);
+  color: var(--daydream);
   opacity: 0.92;
 }
 
@@ -234,7 +232,7 @@ body {
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.8;
   font-style: italic;
-  color: var(--plum);
+  color: var(--eyebrow-color);
 }
 
 .research-content {

@@ -1,4 +1,14 @@
 @font-face {
+  font-family: "Oslo";
+  src:
+    local("Oslo"),
+    url("fonts/Oslo.woff2") format("woff2"),
+    url("fonts/Oslo.otf") format("opentype"),
+    url("fonts/Oslo.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Brittany Signature";
   src:
     local("Brittany Signature"),
@@ -18,9 +28,9 @@
   --illyrian-pine: #6f8478;
   --illyrian-pine-dark: #3d5449;
 
-  --bg: #14110f;
-  --title-color: var(--suriel-sunset);
-  --eyebrow-color: var(--day-court);
+  --bg: var(--illyrian-pine-dark);
+  --title-color: var(--daydream);
+  --eyebrow-color: var(--suriel-sunset);
 }
 
 * {
@@ -65,7 +75,7 @@ body {
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  font-family: "Brittany Signature", "Mrs Saint Delafield", cursive;
+  font-family: "Oslo", "Brittany Signature", "Mrs Saint Delafield", cursive;
   font-weight: 400;
   font-size: clamp(2rem, 6.5vw, 5.5rem);
   line-height: 1;

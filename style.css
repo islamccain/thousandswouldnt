@@ -13,21 +13,21 @@
 }
 
 :root {
-  --daydream: #f4dcd9;
-  --daydream-dark: #aab2ba;
-  --day-court: #ecc4a8;
-  --day-court-dark: #4c5468;
-  --suriel-sunset: #dd90a0;
-  --suriel-sunset-dark: #4a2c2d;
-  --mistcloak: #eab6bc;
-  --mistcloak-dark: #5e3f47;
-  --illyrian-pine: #d9a8aa;
-  --illyrian-pine-dark: #4a3a38;
+  /* Neutral base - deliberately not one of the named accents below,
+     so no single accent color has to double as the background. */
+  --bg: #f5efe6;
+  --text: #2a211f;
 
-  --text: var(--illyrian-pine-dark);
-  --bg: var(--daydream);
-  --title-color: var(--suriel-sunset-dark);
-  --eyebrow-color: var(--day-court-dark);
+  /* Named accents, each with exactly one job. */
+  --oxblood: #7a2e3d;
+  --verdigris: #4f7268;
+  --slate: #55697a;
+  --ochre: #c8933f;
+  --ochre-ink: #4a3218;
+  --plum: #5c4058;
+
+  --title-color: var(--oxblood);
+  --eyebrow-color: var(--verdigris);
 }
 
 * {
@@ -106,14 +106,14 @@ body {
 
 .nav-link:hover,
 .nav-link[aria-current="page"] {
-  color: var(--suriel-sunset-dark);
-  border-color: var(--suriel-sunset-dark);
+  color: var(--slate);
+  border-color: var(--slate);
 }
 
 .btn-primary {
   display: inline-block;
-  background: var(--suriel-sunset);
-  color: var(--suriel-sunset-dark);
+  background: var(--ochre);
+  color: var(--ochre-ink);
   text-decoration: none;
   font-size: 0.82rem;
   font-weight: 600;
@@ -126,8 +126,8 @@ body {
 
 .btn-primary:hover,
 .btn-primary[aria-current="page"] {
-  background: var(--suriel-sunset-dark);
-  color: var(--suriel-sunset);
+  background: var(--ochre-ink);
+  color: var(--ochre);
 }
 
 .page-content {
@@ -163,7 +163,7 @@ body {
 .intro p:last-child {
   margin-bottom: 0;
   font-style: italic;
-  color: var(--eyebrow-color);
+  color: var(--plum);
 }
 
 .goal {
@@ -197,23 +197,23 @@ body {
 }
 
 .goal-list li:nth-child(1) .diamond {
-  background: var(--daydream-dark);
+  background: var(--oxblood);
 }
 
 .goal-list li:nth-child(2) .diamond {
-  background: var(--day-court-dark);
+  background: var(--verdigris);
 }
 
 .goal-list li:nth-child(3) .diamond {
-  background: var(--suriel-sunset-dark);
+  background: var(--ochre);
 }
 
 .goal-list li:nth-child(4) .diamond {
-  background: var(--mistcloak-dark);
+  background: var(--slate);
 }
 
 .goal-list li:nth-child(5) .diamond {
-  background: var(--illyrian-pine-dark);
+  background: var(--plum);
 }
 
 .goal-list p {
@@ -234,7 +234,7 @@ body {
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.8;
   font-style: italic;
-  color: var(--eyebrow-color);
+  color: var(--plum);
 }
 
 .research-content {

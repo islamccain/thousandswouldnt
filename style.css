@@ -320,12 +320,12 @@ body {
   font-weight: 600;
 }
 
-.goal-summary {
-  margin: 0;
+.goal-lead {
+  margin: 0 0 2rem;
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
   line-height: 1.8;
-  font-style: italic;
-  color: var(--eyebrow-color);
+  color: var(--daydream);
+  opacity: 0.92;
 }
 
 .research-content {

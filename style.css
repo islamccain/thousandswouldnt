@@ -1,19 +1,14 @@
 @font-face {
-  font-family: "Oslo";
-  src:
-    local("Oslo"),
-    url("fonts/Oslo.woff2") format("woff2"),
-    url("fonts/Oslo.otf") format("opentype"),
-    url("fonts/Oslo.ttf") format("truetype");
+  font-family: "Dancing Script";
+  src: url("fonts/DancingScript-Regular.ttf") format("truetype");
+  font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Brittany Signature";
-  src:
-    local("Brittany Signature"),
-    url("fonts/BrittanySignature.woff2") format("woff2"),
-    url("fonts/BrittanySignature.otf") format("opentype");
+  font-family: "Dancing Script";
+  src: url("fonts/DancingScript-Bold.ttf") format("truetype");
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -75,8 +70,8 @@ body {
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  font-family: "Oslo", "Brittany Signature", "Mrs Saint Delafield", cursive;
-  font-weight: 400;
+  font-family: "Dancing Script", "Mrs Saint Delafield", cursive;
+  font-weight: 700;
   font-size: clamp(2rem, 6.5vw, 5.5rem);
   line-height: 1;
   color: var(--title-color);

@@ -139,6 +139,7 @@ body {
 }
 
 .intro-title,
+.stats-title,
 .goal-title {
   font-family: "Cormorant Garamond", serif;
   font-weight: 500;
@@ -161,6 +162,81 @@ body {
 .intro p:last-child {
   margin-bottom: 0;
   font-style: italic;
+  color: var(--eyebrow-color);
+}
+
+.stats {
+  background: rgba(0, 0, 0, 0.15);
+  padding: clamp(3rem, 8vh, 5rem) 1.5rem;
+}
+
+.stats-title {
+  margin-bottom: 2.5rem;
+}
+
+.stats-group {
+  max-width: 900px;
+  margin: 0 auto clamp(2.5rem, 6vh, 3.5rem);
+}
+
+.stats-group:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.stats-group-label {
+  margin: 0 0 1.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--eyebrow-color);
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem 3rem;
+}
+
+.stat {
+  flex: 1 1 200px;
+  max-width: 260px;
+  text-align: center;
+}
+
+.stat-number {
+  margin: 0 0 0.4rem;
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+  font-size: clamp(2rem, 4.5vw, 2.6rem);
+  line-height: 1;
+  color: var(--title-color);
+}
+
+.stat-label {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--daydream);
+  opacity: 0.85;
+}
+
+.stats-sources {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--daydream);
+  opacity: 0.65;
+}
+
+.stats-sources a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stats-sources a:hover {
   color: var(--eyebrow-color);
 }
 

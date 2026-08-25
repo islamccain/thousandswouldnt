@@ -326,18 +326,39 @@ body {
   opacity: 0.92;
 }
 
-.research-content {
+.topic-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: clamp(2rem, 5vh, 3rem);
-  padding: clamp(3rem, 10vh, 6rem) 1.5rem;
+  min-height: 50vh;
+  padding: clamp(4rem, 14vh, 8rem) 1.5rem;
+  text-align: center;
+}
+
+.topic-title {
+  font-family: "Dancing Script", "Mrs Saint Delafield", cursive;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  line-height: 1.15;
+  color: var(--title-color);
+  margin: 0 0 0.75rem;
+}
+
+.topic-subtitle {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+  color: var(--eyebrow-color);
+  margin: 0;
 }
 
 .care-notice {
   max-width: 560px;
   padding-left: 1.25rem;
+  text-align: left;
   border-left: 3px solid var(--eyebrow-color);
 }
 
@@ -378,18 +399,6 @@ body {
 
 .crisis-lines a:hover {
   border-color: var(--eyebrow-color);
-}
-
-.studies-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.25rem;
-  justify-content: center;
-}
-
-.studies-grid .btn-primary {
-  font-size: 0.95rem;
-  padding: 0.85em 1.8em;
 }
 
 .flourish {

@@ -19,7 +19,14 @@
     --header-text:#f4f1ec;
     --today:#c04863;
     --binge:#e13d3d;
+    --pink:#ec6fa6;
+    --amber:#f2a93c;
+    --green:#3fa66a;
+    --blue:#3d6fd1;
+    --black:#242424;
     --note:#6b5b73;
+    --bell-on:#ffd400;
+    --bell-off:#8b8b8b;
     --num:#3c3c3c;
     --muted:#8b8b8b;
     --mon:#b7cbe0;
@@ -72,6 +79,23 @@
     letter-spacing:.02em;
     cursor:pointer;
   }
+  .header-center{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .bell-btn{
+    background:none;
+    border:none;
+    padding:0;
+    width:20px;
+    height:20px;
+    color:var(--bell-off);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .bell-btn svg{ width:100%; height:100%; fill:currentColor; display:block; }
+  .bell-btn.active{ color:var(--bell-on); }
   .weekdays{
     display:grid;
     grid-template-columns:repeat(7,1fr);
@@ -142,10 +166,12 @@
     background:var(--header);
     opacity:.6;
   }
-  .dot.binge{
-    background:var(--binge);
-    opacity:1;
-  }
+  .dot.binge{ background:var(--binge); opacity:1; }
+  .dot.pink{ background:var(--pink); opacity:1; }
+  .dot.amber{ background:var(--amber); opacity:1; }
+  .dot.green{ background:var(--green); opacity:1; }
+  .dot.blue{ background:var(--blue); opacity:1; }
+  .dot.black{ background:var(--black); opacity:1; }
   .dot.note{
     background:var(--note);
     opacity:1;
@@ -295,34 +321,146 @@
   .log-row{
     display:flex;
     align-items:center;
-    gap:8px;
     padding-bottom:12px;
     margin-bottom:8px;
     border-bottom:1px solid #eee;
     flex-shrink:0;
   }
-  .binge-btn{
+  .log-btn{
     width:26px;
     height:26px;
     border-radius:50%;
     border:none;
-    background:var(--binge);
     cursor:pointer;
-    flex-shrink:0;
+    padding:0;
+    background:conic-gradient(var(--binge) 0 60deg, var(--pink) 60deg 120deg, var(--amber) 120deg 180deg, var(--green) 180deg 240deg, var(--blue) 240deg 300deg, var(--black) 300deg 360deg);
+  }
+
+  .dialog-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.35);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+    z-index:20;
+  }
+  .dialog-backdrop.open{ opacity:1; pointer-events:auto; }
+  .dialog{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) scale(.9);
+    background:var(--card);
+    border-radius:16px;
+    padding:20px;
+    width:260px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s ease, transform .15s ease;
+    z-index:21;
+  }
+  .dialog.open{
+    opacity:1;
+    pointer-events:auto;
+    transform:translate(-50%,-50%) scale(1);
+  }
+  .swatches{
+    display:flex;
+    justify-content:space-between;
+  }
+  .swatch{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:none;
+    cursor:pointer;
     padding:0;
   }
-  .binge-dots{
+  .swatch.red{ background:var(--binge); }
+  .swatch.pink{ background:var(--pink); }
+  .swatch.amber{ background:var(--amber); }
+  .swatch.green{ background:var(--green); }
+  .swatch.blue{ background:var(--blue); }
+  .swatch.black{ background:var(--black); }
+  .tally{
     display:flex;
     flex-wrap:wrap;
-    gap:6px;
-    align-items:center;
+    gap:7px;
+    margin-top:16px;
+    min-height:10px;
   }
-  .binge-dots span{
-    width:8px;
-    height:8px;
+  .tally span{
+    width:9px;
+    height:9px;
     border-radius:50%;
-    background:var(--binge);
     cursor:pointer;
+  }
+
+  #reminder-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    overflow-y:auto;
+    flex:1;
+  }
+  #reminder-list li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+  }
+  #reminder-list input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    accent-color:var(--bell-on);
+  }
+  #reminder-list .rtext{
+    flex:1;
+    font-size:14px;
+    color:var(--num);
+  }
+  #reminder-list li.done .rtext{
+    text-decoration:line-through;
+    color:var(--muted);
+  }
+  #reminder-list .remove{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:18px;
+    cursor:pointer;
+    width:28px;
+    height:28px;
+    flex-shrink:0;
+  }
+  #reminder-form{
+    display:flex;
+    gap:8px;
+    padding-top:12px;
+    flex-shrink:0;
+  }
+  #reminder-form input[type="text"]{
+    flex:1;
+    min-width:0;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:14px;
+    background:var(--bg);
+  }
+  #reminder-form button{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:none;
+    background:var(--header);
+    color:#fff;
+    font-size:20px;
+    cursor:pointer;
+    flex-shrink:0;
   }
   #appt-list{
     list-style:none;
@@ -399,7 +537,12 @@
 <body>
   <header>
     <button id="prev" aria-label="Previous month">&#8249;</button>
-    <h1 id="label"></h1>
+    <div class="header-center">
+      <h1 id="label"></h1>
+      <button id="bell-btn" class="bell-btn" aria-label="Reminders">
+        <svg viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 0-1 1v1.06A7 7 0 0 0 5 11v4l-1.7 2.55A1 1 0 0 0 4 19h16a1 1 0 0 0 .8-1.45L19 15v-4a7 7 0 0 0-6-6.94V3a1 1 0 0 0-1-1zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>
+      </button>
+    </div>
     <button id="next" aria-label="Next month">&#8250;</button>
   </header>
   <div class="weekdays">
@@ -419,8 +562,7 @@
     </div>
     <div id="main-view">
       <div class="log-row">
-        <button id="binge-add" class="binge-btn" aria-label="Log"></button>
-        <div id="binge-dots" class="binge-dots"></div>
+        <button id="log-btn" class="log-btn" aria-label="Log"></button>
       </div>
       <ul id="appt-list"></ul>
       <form id="appt-form">
@@ -440,6 +582,33 @@
     </div>
   </div>
 
+  <div class="dialog-backdrop" id="log-backdrop"></div>
+  <div class="dialog" id="log-dialog">
+    <div class="swatches">
+      <button class="swatch red" data-color="binge" aria-label="Red"></button>
+      <button class="swatch pink" data-color="pink" aria-label="Pink"></button>
+      <button class="swatch amber" data-color="amber" aria-label="Amber"></button>
+      <button class="swatch green" data-color="green" aria-label="Green"></button>
+      <button class="swatch blue" data-color="blue" aria-label="Blue"></button>
+      <button class="swatch black" data-color="black" aria-label="Black"></button>
+    </div>
+    <div class="tally" id="log-tally"></div>
+  </div>
+
+  <div class="backdrop" id="reminders-backdrop"></div>
+  <div class="sheet" id="reminders-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-top">
+      <span></span>
+      <button class="sheet-close" id="reminders-close" aria-label="Close">&times;</button>
+    </div>
+    <ul id="reminder-list"></ul>
+    <form id="reminder-form">
+      <input type="text" id="reminder-text" placeholder="Reminder" required />
+      <button type="submit" aria-label="Add">+</button>
+    </form>
+  </div>
+
 <script>
   var view = new Date();
   view.setDate(1);
@@ -454,8 +623,16 @@
   var apptForm = document.getElementById('appt-form');
   var apptTime = document.getElementById('appt-time');
   var apptName = document.getElementById('appt-name');
-  var bingeBtn = document.getElementById('binge-add');
-  var bingeDots = document.getElementById('binge-dots');
+  var logBtn = document.getElementById('log-btn');
+  var logBackdrop = document.getElementById('log-backdrop');
+  var logDialog = document.getElementById('log-dialog');
+  var logTally = document.getElementById('log-tally');
+  var bellBtn = document.getElementById('bell-btn');
+  var remindersBackdrop = document.getElementById('reminders-backdrop');
+  var remindersSheet = document.getElementById('reminders-sheet');
+  var reminderList = document.getElementById('reminder-list');
+  var reminderForm = document.getElementById('reminder-form');
+  var reminderText = document.getElementById('reminder-text');
   var mainView = document.getElementById('main-view');
   var notesView = document.getElementById('notes-view');
   var notesBtn = document.getElementById('notes-btn');
@@ -470,9 +647,22 @@
   var data = {};
   try{ data = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ data = {}; }
 
-  var BINGE_KEY = 'planner-binges';
-  var binges = {};
-  try{ binges = JSON.parse(localStorage.getItem(BINGE_KEY)) || {}; }catch(e){ binges = {}; }
+  var DOTS_KEY = 'planner-dots';
+  var COLORS = ['binge','pink','amber','green','blue','black'];
+  var dots = null;
+  try{ dots = JSON.parse(localStorage.getItem(DOTS_KEY)); }catch(e){ dots = null; }
+  if (!dots){
+    dots = {};
+    var oldBinges = null;
+    try{ oldBinges = JSON.parse(localStorage.getItem('planner-binges')); }catch(e){ oldBinges = null; }
+    if (oldBinges){
+      Object.keys(oldBinges).forEach(function(k){ dots[k] = { binge: oldBinges[k] }; });
+    }
+  }
+
+  var REMINDERS_KEY = 'planner-reminders';
+  var reminders = [];
+  try{ reminders = JSON.parse(localStorage.getItem(REMINDERS_KEY)) || []; }catch(e){ reminders = []; }
 
   var NOTES_KEY = 'planner-notes';
   var notesStore = {};
@@ -490,8 +680,11 @@
   function save(){
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
   }
-  function saveBinges(){
-    localStorage.setItem(BINGE_KEY, JSON.stringify(binges));
+  function saveDots(){
+    localStorage.setItem(DOTS_KEY, JSON.stringify(dots));
+  }
+  function saveReminders(){
+    localStorage.setItem(REMINDERS_KEY, JSON.stringify(reminders));
   }
   function saveNotesStore(){
     localStorage.setItem(NOTES_KEY, JSON.stringify(notesStore));
@@ -583,11 +776,16 @@
         dot.className = 'dot';
         marks.appendChild(dot);
       }
-      var bcount = binges[key] || 0;
-      for (var b = 0; b < bcount; b++){
-        var bdot = document.createElement('span');
-        bdot.className = 'dot binge';
-        marks.appendChild(bdot);
+      var dayDots = dots[key];
+      if (dayDots){
+        COLORS.forEach(function(color){
+          var count = dayDots[color] || 0;
+          for (var c = 0; c < count; c++){
+            var cdot = document.createElement('span');
+            cdot.className = 'dot ' + color;
+            marks.appendChild(cdot);
+          }
+        });
       }
       if (notesStore[key]){
         var ndot = document.createElement('span');
@@ -615,7 +813,6 @@
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
-    renderBinges();
     notesView.hidden = true;
     mainView.hidden = false;
     backdrop.classList.add('open');
@@ -626,6 +823,7 @@
 
   function closeSheet(){
     if (!notesText.hidden) saveCurrentNote();
+    closeLogDialog();
     backdrop.classList.remove('open');
     sheet.classList.remove('open');
     selectedKey = null;
@@ -796,28 +994,125 @@
     });
   }
 
-  function renderBinges(){
-    bingeDots.innerHTML = '';
-    var n = binges[selectedKey] || 0;
-    for (var i = 0; i < n; i++){
-      var d = document.createElement('span');
-      d.addEventListener('click', function(){
-        binges[selectedKey] = Math.max(0, (binges[selectedKey] || 0) - 1);
-        if (!binges[selectedKey]) delete binges[selectedKey];
-        saveBinges();
-        renderBinges();
-        render();
-      });
-      bingeDots.appendChild(d);
-    }
+  function renderTally(){
+    logTally.innerHTML = '';
+    var dayDots = dots[selectedKey] || {};
+    COLORS.forEach(function(color){
+      var count = dayDots[color] || 0;
+      for (var i = 0; i < count; i++){
+        var d = document.createElement('span');
+        d.className = 'dot ' + color;
+        d.addEventListener('click', (function(color){
+          return function(){
+            var entry = dots[selectedKey];
+            if (!entry) return;
+            entry[color] = Math.max(0, (entry[color] || 0) - 1);
+            if (!entry[color]) delete entry[color];
+            if (!Object.keys(entry).length) delete dots[selectedKey];
+            saveDots();
+            renderTally();
+            render();
+          };
+        })(color));
+        logTally.appendChild(d);
+      }
+    });
   }
 
-  bingeBtn.addEventListener('click', function(){
+  function openLogDialog(){
     if (!selectedKey) return;
-    binges[selectedKey] = (binges[selectedKey] || 0) + 1;
-    saveBinges();
-    renderBinges();
-    render();
+    renderTally();
+    logBackdrop.classList.add('open');
+    logDialog.classList.add('open');
+  }
+  function closeLogDialog(){
+    logBackdrop.classList.remove('open');
+    logDialog.classList.remove('open');
+  }
+
+  logBtn.addEventListener('click', openLogDialog);
+  logBackdrop.addEventListener('click', closeLogDialog);
+
+  document.querySelectorAll('.swatch').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (!selectedKey) return;
+      var color = btn.dataset.color;
+      if (!dots[selectedKey]) dots[selectedKey] = {};
+      dots[selectedKey][color] = (dots[selectedKey][color] || 0) + 1;
+      saveDots();
+      renderTally();
+      render();
+    });
+  });
+
+  function updateBellState(){
+    var active = reminders.some(function(r){ return !r.done; });
+    bellBtn.classList.toggle('active', active);
+  }
+
+  function renderReminders(){
+    reminderList.innerHTML = '';
+    reminders.forEach(function(item){
+      var li = document.createElement('li');
+      if (item.done) li.className = 'done';
+
+      var check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = item.done;
+      check.addEventListener('change', function(){
+        item.done = check.checked;
+        saveReminders();
+        renderReminders();
+        updateBellState();
+      });
+
+      var text = document.createElement('span');
+      text.className = 'rtext';
+      text.textContent = item.text;
+
+      var remove = document.createElement('button');
+      remove.className = 'remove';
+      remove.type = 'button';
+      remove.innerHTML = '&times;';
+      remove.addEventListener('click', function(){
+        reminders = reminders.filter(function(r){ return r.id !== item.id; });
+        saveReminders();
+        renderReminders();
+        updateBellState();
+      });
+
+      li.appendChild(check);
+      li.appendChild(text);
+      li.appendChild(remove);
+      reminderList.appendChild(li);
+    });
+  }
+
+  function openReminders(){
+    closeSheet();
+    renderReminders();
+    remindersBackdrop.classList.add('open');
+    remindersSheet.classList.add('open');
+    reminderText.value = '';
+  }
+  function closeReminders(){
+    remindersBackdrop.classList.remove('open');
+    remindersSheet.classList.remove('open');
+  }
+
+  bellBtn.addEventListener('click', openReminders);
+  document.getElementById('reminders-close').addEventListener('click', closeReminders);
+  remindersBackdrop.addEventListener('click', closeReminders);
+
+  reminderForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    var text = reminderText.value.trim();
+    if (!text) return;
+    reminders.push({ id: crypto.randomUUID(), text: text, done: false });
+    saveReminders();
+    reminderText.value = '';
+    renderReminders();
+    updateBellState();
   });
 
   apptForm.addEventListener('submit', function(e){
@@ -863,6 +1158,7 @@
     touchX = null;
   });
 
+  updateBellState();
   render();
 </script>
 </body>

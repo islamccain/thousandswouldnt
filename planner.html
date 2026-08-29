@@ -618,6 +618,20 @@
     color:var(--muted);
     margin-top:2px;
   }
+  .backup-actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .backup-action{
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    font-size:14px;
+    color:var(--num);
+    background:var(--bg);
+    cursor:pointer;
+  }
 </style>
 </head>
 <body>
@@ -633,6 +647,9 @@
       </button>
       <button id="search-btn" class="bell-btn" aria-label="Search">
         <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+      </button>
+      <button id="backup-btn" class="bell-btn" aria-label="Backup">
+        <svg viewBox="0 0 24 24"><path d="M12 16l5-5-1.41-1.41L13 12.17V4h-2v8.17l-2.59-2.58L7 11l5 5zM5 18h14v2H5z"/></svg>
       </button>
     </div>
     <button id="next" aria-label="Next month">&#8250;</button>
@@ -720,6 +737,19 @@
     <ul id="search-results"></ul>
   </div>
 
+  <div class="backdrop" id="backup-backdrop"></div>
+  <div class="sheet" id="backup-sheet">
+    <div class="sheet-top">
+      <span></span>
+      <button class="sheet-close" id="backup-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="backup-actions">
+      <button type="button" id="export-btn" class="backup-action">Export</button>
+      <button type="button" id="import-btn" class="backup-action">Import</button>
+      <input type="file" id="import-file" accept="application/json" hidden />
+    </div>
+  </div>
+
 <script>
   var view = new Date();
   view.setDate(1);
@@ -756,6 +786,12 @@
   var searchInput = document.getElementById('search-input');
   var searchChips = document.getElementById('search-chips');
   var searchResults = document.getElementById('search-results');
+  var backupBtn = document.getElementById('backup-btn');
+  var backupBackdrop = document.getElementById('backup-backdrop');
+  var backupSheet = document.getElementById('backup-sheet');
+  var exportBtn = document.getElementById('export-btn');
+  var importBtn = document.getElementById('import-btn');
+  var importFile = document.getElementById('import-file');
   var mainView = document.getElementById('main-view');
   var notesView = document.getElementById('notes-view');
   var notesBtn = document.getElementById('notes-btn');
@@ -937,6 +973,7 @@
     closeReminders();
     closeReport();
     closeSearch();
+    closeBackup();
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
@@ -1160,6 +1197,7 @@
     closeSheet();
     closeReminders();
     closeReport();
+    closeBackup();
     searchInput.value = '';
     searchResults.innerHTML = '';
     searchBackdrop.classList.add('open');
@@ -1319,6 +1357,7 @@
     closeSheet();
     closeReport();
     closeSearch();
+    closeBackup();
     renderReminders();
     remindersBackdrop.classList.add('open');
     remindersSheet.classList.add('open');
@@ -1473,6 +1512,7 @@
     closeSheet();
     closeReminders();
     closeSearch();
+    closeBackup();
     renderReport();
     reportBackdrop.classList.add('open');
     reportSheet.classList.add('open');
@@ -1485,6 +1525,81 @@
   reportBtn.addEventListener('click', openReport);
   document.getElementById('report-close').addEventListener('click', closeReport);
   reportBackdrop.addEventListener('click', closeReport);
+
+  function openBackup(){
+    closeSheet();
+    closeReminders();
+    closeReport();
+    closeSearch();
+    backupBackdrop.classList.add('open');
+    backupSheet.classList.add('open');
+  }
+  function closeBackup(){
+    backupBackdrop.classList.remove('open');
+    backupSheet.classList.remove('open');
+  }
+
+  backupBtn.addEventListener('click', openBackup);
+  document.getElementById('backup-close').addEventListener('click', closeBackup);
+  backupBackdrop.addEventListener('click', closeBackup);
+
+  exportBtn.addEventListener('click', function(){
+    var payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      appointments: data,
+      dots: dots,
+      reminders: reminders,
+      notes: notesStore,
+      notesMeta: notesMeta
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'planner-backup-' + dateKey(new Date()) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener('click', function(){
+    importFile.value = '';
+    importFile.click();
+  });
+
+  importFile.addEventListener('change', function(){
+    var file = importFile.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var parsed;
+      try{ parsed = JSON.parse(reader.result); }catch(e){
+        alert('That file could not be read.');
+        return;
+      }
+      if (!confirm('This replaces everything currently in the app with this backup. Continue?')) return;
+
+      data = parsed.appointments || {};
+      dots = parsed.dots || {};
+      reminders = parsed.reminders || [];
+      notesStore = parsed.notes || {};
+      notesMeta = parsed.notesMeta || null;
+      sessionKey = null;
+
+      save();
+      saveDots();
+      saveReminders();
+      saveNotesStore();
+      saveNotesMeta();
+
+      updateBellState();
+      render();
+      closeBackup();
+    };
+    reader.readAsText(file);
+  });
 
   apptForm.addEventListener('submit', function(e){
     e.preventDefault();

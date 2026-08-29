@@ -152,6 +152,14 @@
     color:#fff;
     font-weight:700;
   }
+  .appt-mark{
+    width:14px;
+    height:3px;
+    border-radius:2px;
+    background:var(--header);
+    opacity:.8;
+    margin-top:3px;
+  }
   .marks{
     display:flex;
     flex-wrap:wrap;
@@ -826,13 +834,14 @@
       span.textContent = cellDate.getDate();
       cell.appendChild(span);
 
+      if (data[key] && data[key].length){
+        var apptMark = document.createElement('span');
+        apptMark.className = 'appt-mark';
+        cell.appendChild(apptMark);
+      }
+
       var marks = document.createElement('div');
       marks.className = 'marks';
-      if (data[key] && data[key].length){
-        var dot = document.createElement('span');
-        dot.className = 'dot';
-        marks.appendChild(dot);
-      }
       var dayDots = dots[key];
       if (dayDots){
         COLORS.forEach(function(color){

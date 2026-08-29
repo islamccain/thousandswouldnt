@@ -14,11 +14,12 @@
 <style>
   :root{
     --bg:#f4f1ec;
+    --card:#ffffff;
     --header:#35476b;
     --header-text:#f4f1ec;
     --today:#c04863;
-    --grid-line:#e5e0d8;
     --num:#3c3c3c;
+    --muted:#8b8b8b;
     --mon:#b7cbe0;
     --tue:#b3cdcb;
     --wed:#bcaebb;
@@ -78,7 +79,7 @@
     text-align:center;
     font-size:11px;
     font-weight:600;
-    color:#8b8b8b;
+    color:var(--muted);
     padding:6px 0;
   }
   .grid{
@@ -93,13 +94,14 @@
   .cell{
     position:relative;
     display:flex;
-    align-items:flex-start;
-    justify-content:flex-end;
+    flex-direction:column;
+    align-items:flex-end;
     padding:6px;
     border-radius:10px;
     background:var(--bg);
+    cursor:pointer;
   }
-  .cell.in span{color:var(--num);}
+  .cell.in span.num{color:var(--num);}
   .cell.out{opacity:.35;}
   .cell:nth-child(7n+1){background:var(--mon);}
   .cell:nth-child(7n+2){background:var(--tue);}
@@ -108,7 +110,7 @@
   .cell:nth-child(7n+5){background:var(--fri);}
   .cell:nth-child(7n+6){background:var(--sat);}
   .cell:nth-child(7n+7){background:var(--sun);}
-  .cell span{
+  .cell span.num{
     font-size:14px;
     font-weight:500;
     width:24px;
@@ -118,10 +120,146 @@
     justify-content:center;
     border-radius:50%;
   }
-  .cell.today span{
+  .cell.today span.num{
     background:var(--today);
     color:#fff;
     font-weight:700;
+  }
+  .dot{
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--today);
+    margin-top:auto;
+    margin-bottom:2px;
+  }
+
+  .backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.35);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+    z-index:10;
+  }
+  .backdrop.open{opacity:1; pointer-events:auto;}
+
+  .sheet{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    background:var(--card);
+    border-radius:18px 18px 0 0;
+    padding:10px 18px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(100%);
+    transition:transform .25s ease;
+    z-index:11;
+    max-height:70vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{
+    width:36px;
+    height:4px;
+    border-radius:2px;
+    background:#ddd;
+    margin:4px auto 12px;
+    flex-shrink:0;
+  }
+  .sheet-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-shrink:0;
+    margin-bottom:10px;
+  }
+  .sheet-top h2{
+    margin:0;
+    font-size:16px;
+    font-weight:600;
+    color:var(--num);
+  }
+  .sheet-close{
+    background:none;
+    border:none;
+    font-size:20px;
+    color:var(--muted);
+    cursor:pointer;
+    width:32px;
+    height:32px;
+  }
+  #appt-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    overflow-y:auto;
+    flex:1;
+  }
+  #appt-list li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+  }
+  #appt-list .time{
+    font-size:13px;
+    font-weight:700;
+    color:var(--today);
+    flex-shrink:0;
+    width:70px;
+  }
+  #appt-list .name{
+    flex:1;
+    font-size:14px;
+    color:var(--num);
+  }
+  #appt-list .remove{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:18px;
+    cursor:pointer;
+    width:28px;
+    height:28px;
+    flex-shrink:0;
+  }
+  #appt-form{
+    display:flex;
+    gap:8px;
+    padding-top:12px;
+    flex-shrink:0;
+  }
+  #appt-form input[type="time"]{
+    width:100px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:8px;
+    font-size:14px;
+    background:var(--bg);
+  }
+  #appt-form input[type="text"]{
+    flex:1;
+    min-width:0;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:14px;
+    background:var(--bg);
+  }
+  #appt-form button{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:none;
+    background:var(--header);
+    color:#fff;
+    font-size:20px;
+    cursor:pointer;
+    flex-shrink:0;
   }
 </style>
 </head>
@@ -136,12 +274,53 @@
   </div>
   <div class="grid" id="grid"></div>
 
+  <div class="backdrop" id="backdrop"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-top">
+      <h2 id="sheet-date"></h2>
+      <button class="sheet-close" id="sheet-close" aria-label="Close">&times;</button>
+    </div>
+    <ul id="appt-list"></ul>
+    <form id="appt-form">
+      <input type="time" id="appt-time" required />
+      <input type="text" id="appt-name" placeholder="Appointment" required />
+      <button type="submit" aria-label="Add">+</button>
+    </form>
+  </div>
+
 <script>
   var view = new Date();
   view.setDate(1);
+  var selectedKey = null;
 
   var label = document.getElementById('label');
   var grid = document.getElementById('grid');
+  var backdrop = document.getElementById('backdrop');
+  var sheet = document.getElementById('sheet');
+  var sheetDate = document.getElementById('sheet-date');
+  var apptList = document.getElementById('appt-list');
+  var apptForm = document.getElementById('appt-form');
+  var apptTime = document.getElementById('appt-time');
+  var apptName = document.getElementById('appt-name');
+
+  var STORE_KEY = 'planner-appointments';
+  var data = {};
+  try{ data = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ data = {}; }
+
+  function save(){
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+  function dateKey(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function formatTime(t){
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var m = parts[1];
+    var suffix = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + ':' + m + ' ' + suffix;
+  }
 
   function render(){
     var year = view.getFullYear();
@@ -150,37 +329,114 @@
 
     var first = new Date(year, month, 1);
     var startOffset = (first.getDay() + 6) % 7; // Monday = 0
-    var daysInMonth = new Date(year, month + 1, 0).getDate();
-    var daysInPrev = new Date(year, month, 0).getDate();
 
     var today = new Date();
-    var isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
     grid.innerHTML = '';
     var totalCells = 42;
     for (var i = 0; i < totalCells; i++){
-      var dayNum, inMonth;
-      if (i < startOffset){
-        dayNum = daysInPrev - startOffset + i + 1;
-        inMonth = false;
-      } else if (i >= startOffset + daysInMonth){
-        dayNum = i - startOffset - daysInMonth + 1;
-        inMonth = false;
-      } else {
-        dayNum = i - startOffset + 1;
-        inMonth = true;
-      }
+      var cellDate = new Date(year, month, i - startOffset + 1);
+      var inMonth = cellDate.getMonth() === month;
+      var key = dateKey(cellDate);
+
       var cell = document.createElement('div');
       cell.className = 'cell ' + (inMonth ? 'in' : 'out');
-      if (inMonth && isCurrentMonth && dayNum === today.getDate()){
+      if (cellDate.getFullYear() === today.getFullYear() &&
+          cellDate.getMonth() === today.getMonth() &&
+          cellDate.getDate() === today.getDate()){
         cell.className += ' today';
       }
+      cell.dataset.key = key;
+
       var span = document.createElement('span');
-      span.textContent = dayNum;
+      span.className = 'num';
+      span.textContent = cellDate.getDate();
       cell.appendChild(span);
+
+      if (data[key] && data[key].length){
+        var dot = document.createElement('span');
+        dot.className = 'dot';
+        cell.appendChild(dot);
+      }
+
+      cell.addEventListener('click', (function(d, k){
+        return function(){
+          if (d.getMonth() !== view.getMonth() || d.getFullYear() !== view.getFullYear()){
+            view = new Date(d.getFullYear(), d.getMonth(), 1);
+            render();
+          }
+          openSheet(k, d);
+        };
+      })(cellDate, key));
+
       grid.appendChild(cell);
     }
   }
+
+  function openSheet(key, d){
+    selectedKey = key;
+    sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
+    renderAppts();
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+    apptTime.value = '';
+    apptName.value = '';
+  }
+
+  function closeSheet(){
+    backdrop.classList.remove('open');
+    sheet.classList.remove('open');
+    selectedKey = null;
+  }
+
+  function renderAppts(){
+    apptList.innerHTML = '';
+    var items = (data[selectedKey] || []).slice().sort(function(a,b){
+      return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
+    });
+    items.forEach(function(item, idx){
+      var li = document.createElement('li');
+
+      var time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = formatTime(item.time);
+
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = item.name;
+
+      var remove = document.createElement('button');
+      remove.className = 'remove';
+      remove.type = 'button';
+      remove.innerHTML = '&times;';
+      remove.addEventListener('click', function(){
+        var arr = data[selectedKey];
+        var realIdx = arr.indexOf(item);
+        arr.splice(realIdx, 1);
+        if (!arr.length) delete data[selectedKey];
+        save();
+        renderAppts();
+        render();
+      });
+
+      li.appendChild(time);
+      li.appendChild(name);
+      li.appendChild(remove);
+      apptList.appendChild(li);
+    });
+  }
+
+  apptForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!selectedKey || !apptTime.value || !apptName.value.trim()) return;
+    if (!data[selectedKey]) data[selectedKey] = [];
+    data[selectedKey].push({ time: apptTime.value, name: apptName.value.trim() });
+    save();
+    apptTime.value = '';
+    apptName.value = '';
+    renderAppts();
+    render();
+  });
 
   document.getElementById('prev').addEventListener('click', function(){
     view.setMonth(view.getMonth() - 1);
@@ -195,9 +451,12 @@
     view.setDate(1);
     render();
   });
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+  backdrop.addEventListener('click', closeSheet);
 
   var touchX = null;
   document.body.addEventListener('touchstart', function(e){
+    if (sheet.classList.contains('open')) return;
     touchX = e.changedTouches[0].clientX;
   });
   document.body.addEventListener('touchend', function(e){

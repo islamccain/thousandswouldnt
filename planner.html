@@ -18,6 +18,7 @@
     --header:#35476b;
     --header-text:#f4f1ec;
     --today:#c04863;
+    --binge:#e13d3d;
     --num:#3c3c3c;
     --muted:#8b8b8b;
     --mon:#b7cbe0;
@@ -100,6 +101,7 @@
     border-radius:10px;
     background:var(--bg);
     cursor:pointer;
+    overflow:hidden;
   }
   .cell.in span.num{color:var(--num);}
   .cell.out{opacity:.35;}
@@ -125,13 +127,23 @@
     color:#fff;
     font-weight:700;
   }
+  .marks{
+    display:flex;
+    flex-wrap:wrap;
+    gap:2px;
+    justify-content:flex-end;
+    margin-top:auto;
+  }
   .dot{
     width:5px;
     height:5px;
     border-radius:50%;
-    background:var(--today);
-    margin-top:auto;
-    margin-bottom:2px;
+    background:var(--header);
+    opacity:.6;
+  }
+  .dot.binge{
+    background:var(--binge);
+    opacity:1;
   }
 
   .backdrop{
@@ -190,6 +202,38 @@
     cursor:pointer;
     width:32px;
     height:32px;
+  }
+  .log-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-bottom:12px;
+    margin-bottom:8px;
+    border-bottom:1px solid #eee;
+    flex-shrink:0;
+  }
+  .binge-btn{
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:none;
+    background:var(--binge);
+    cursor:pointer;
+    flex-shrink:0;
+    padding:0;
+  }
+  .binge-dots{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+  }
+  .binge-dots span{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--binge);
+    cursor:pointer;
   }
   #appt-list{
     list-style:none;
@@ -281,6 +325,10 @@
       <h2 id="sheet-date"></h2>
       <button class="sheet-close" id="sheet-close" aria-label="Close">&times;</button>
     </div>
+    <div class="log-row">
+      <button id="binge-add" class="binge-btn" aria-label="Log"></button>
+      <div id="binge-dots" class="binge-dots"></div>
+    </div>
     <ul id="appt-list"></ul>
     <form id="appt-form">
       <input type="time" id="appt-time" required />
@@ -303,13 +351,22 @@
   var apptForm = document.getElementById('appt-form');
   var apptTime = document.getElementById('appt-time');
   var apptName = document.getElementById('appt-name');
+  var bingeBtn = document.getElementById('binge-add');
+  var bingeDots = document.getElementById('binge-dots');
 
   var STORE_KEY = 'planner-appointments';
   var data = {};
   try{ data = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ data = {}; }
 
+  var BINGE_KEY = 'planner-binges';
+  var binges = {};
+  try{ binges = JSON.parse(localStorage.getItem(BINGE_KEY)) || {}; }catch(e){ binges = {}; }
+
   function save(){
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }
+  function saveBinges(){
+    localStorage.setItem(BINGE_KEY, JSON.stringify(binges));
   }
   function pad(n){ return n < 10 ? '0' + n : '' + n; }
   function dateKey(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -353,11 +410,20 @@
       span.textContent = cellDate.getDate();
       cell.appendChild(span);
 
+      var marks = document.createElement('div');
+      marks.className = 'marks';
       if (data[key] && data[key].length){
         var dot = document.createElement('span');
         dot.className = 'dot';
-        cell.appendChild(dot);
+        marks.appendChild(dot);
       }
+      var bcount = binges[key] || 0;
+      for (var b = 0; b < bcount; b++){
+        var bdot = document.createElement('span');
+        bdot.className = 'dot binge';
+        marks.appendChild(bdot);
+      }
+      if (marks.children.length) cell.appendChild(marks);
 
       cell.addEventListener('click', (function(d, k){
         return function(){
@@ -377,6 +443,7 @@
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
+    renderBinges();
     backdrop.classList.add('open');
     sheet.classList.add('open');
     apptTime.value = '';
@@ -425,6 +492,30 @@
       apptList.appendChild(li);
     });
   }
+
+  function renderBinges(){
+    bingeDots.innerHTML = '';
+    var n = binges[selectedKey] || 0;
+    for (var i = 0; i < n; i++){
+      var d = document.createElement('span');
+      d.addEventListener('click', function(){
+        binges[selectedKey] = Math.max(0, (binges[selectedKey] || 0) - 1);
+        if (!binges[selectedKey]) delete binges[selectedKey];
+        saveBinges();
+        renderBinges();
+        render();
+      });
+      bingeDots.appendChild(d);
+    }
+  }
+
+  bingeBtn.addEventListener('click', function(){
+    if (!selectedKey) return;
+    binges[selectedKey] = (binges[selectedKey] || 0) + 1;
+    saveBinges();
+    renderBinges();
+    render();
+  });
 
   apptForm.addEventListener('submit', function(e){
     e.preventDefault();

@@ -1227,8 +1227,17 @@
     function hasColor(day, color){ return (day.dotCounts[color] || 0) > 0; }
 
     var conditions = [];
-    conditions.push({ test: function(d){ return d.apptCount >= 2; }, phrase: 'you have 2 or more appointments' });
-    conditions.push({ test: function(d){ return d.apptCount === 0; }, phrase: 'you have no appointments' });
+    var maxAppt = 0;
+    days.forEach(function(d){ if (d.apptCount > maxAppt) maxAppt = d.apptCount; });
+    for (var n = 0; n <= Math.min(maxAppt, 4); n++){
+      conditions.push({
+        test: (function(n){ return function(d){ return d.apptCount === n; }; })(n),
+        phrase: n === 0 ? 'you have no appointments' : 'you have exactly ' + n + (n === 1 ? ' appointment' : ' appointments')
+      });
+    }
+    if (maxAppt >= 2) conditions.push({ test: function(d){ return d.apptCount >= 2; }, phrase: 'you have 2 or more appointments' });
+    if (maxAppt >= 3) conditions.push({ test: function(d){ return d.apptCount >= 3; }, phrase: 'you have 3 or more appointments' });
+    if (maxAppt >= 5) conditions.push({ test: function(d){ return d.apptCount >= 5; }, phrase: 'you have 5 or more appointments' });
     WEEKDAY_NAMES.forEach(function(name, idx){
       conditions.push({ test: function(d){ return d.weekday === idx; }, phrase: "it's a " + name });
     });

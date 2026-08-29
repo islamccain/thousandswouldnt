@@ -498,6 +498,22 @@
     height:28px;
     flex-shrink:0;
   }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    padding-top:10px;
+    flex-shrink:0;
+  }
+  .chip{
+    border:none;
+    border-radius:999px;
+    padding:6px 12px;
+    font-size:12px;
+    color:var(--num);
+    background:var(--bg);
+    cursor:pointer;
+  }
   #appt-form{
     display:flex;
     gap:8px;
@@ -590,6 +606,7 @@
         <button id="log-btn" class="log-btn" aria-label="Log"></button>
       </div>
       <ul id="appt-list"></ul>
+      <div class="chip-row" id="preset-chips"></div>
       <form id="appt-form">
         <input type="time" id="appt-time" required />
         <input type="text" id="appt-name" placeholder="Appointment" required />
@@ -658,6 +675,7 @@
   var apptForm = document.getElementById('appt-form');
   var apptTime = document.getElementById('appt-time');
   var apptName = document.getElementById('appt-name');
+  var presetChips = document.getElementById('preset-chips');
   var logBtn = document.getElementById('log-btn');
   var logBackdrop = document.getElementById('log-backdrop');
   var logDialog = document.getElementById('log-dialog');
@@ -998,6 +1016,19 @@
     saveTimer = setTimeout(saveCurrentNote, 600);
   });
 
+  var PRESETS = ['Pilates', 'Walk', 'The PMDD Project', 'Rex', 'Health'];
+  PRESETS.forEach(function(name){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = name;
+    chip.addEventListener('click', function(){
+      apptName.value = name;
+      apptTime.focus();
+    });
+    presetChips.appendChild(chip);
+  });
+
   function renderAppts(){
     apptList.innerHTML = '';
     var items = (data[selectedKey] || []).slice().sort(function(a,b){
@@ -1185,6 +1216,7 @@
       var k = dateKey(cur);
       days.push({
         apptCount: (data[k] || []).length,
+        apptNames: (data[k] || []).map(function(a){ return a.name; }),
         dotCounts: dots[k] || {},
         weekday: cur.getDay()
       });
@@ -1202,6 +1234,14 @@
     });
     COLORS.forEach(function(c){
       conditions.push({ test: function(d){ return hasColor(d, c); }, phrase: 'you have a ' + COLOR_LABEL[c] + ' dot', color: c });
+    });
+    var apptNamesSeen = {};
+    days.forEach(function(d){ d.apptNames.forEach(function(n){ apptNamesSeen[n] = true; }); });
+    Object.keys(apptNamesSeen).forEach(function(name){
+      conditions.push({
+        test: function(d){ return d.apptNames.indexOf(name) >= 0; },
+        phrase: 'you have a ' + name + ' appointment'
+      });
     });
 
     var candidates = [];
@@ -1246,15 +1286,16 @@
       dot.className = 'dot ' + c.color;
       var text = document.createElement('span');
       var label = COLOR_LABEL[c.color];
+      var article = /^[aeiou]/i.test(label) ? 'an' : 'a';
       var sentence;
       if (c.rateIn >= 0.999 && c.nIn >= 3){
-        sentence = 'You always have a ' + label + ' dot when ' + c.phrase + '.';
+        sentence = 'You always have ' + article + ' ' + label + ' dot when ' + c.phrase + '.';
       } else if (c.rateIn <= 0.001 && c.nIn >= 3){
-        sentence = 'You never have a ' + label + ' dot when ' + c.phrase + '.';
+        sentence = 'You never have ' + article + ' ' + label + ' dot when ' + c.phrase + '.';
       } else if (c.diff > 0){
-        sentence = "You're more likely to have a " + label + ' dot when ' + c.phrase + '.';
+        sentence = "You're more likely to have " + article + ' ' + label + ' dot when ' + c.phrase + '.';
       } else {
-        sentence = "You're less likely to have a " + label + ' dot when ' + c.phrase + '.';
+        sentence = "You're less likely to have " + article + ' ' + label + ' dot when ' + c.phrase + '.';
       }
       text.textContent = sentence;
       li.appendChild(dot);

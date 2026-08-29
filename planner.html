@@ -585,6 +585,39 @@
     height:9px;
     flex-shrink:0;
   }
+  #search-input{
+    flex:1;
+    min-width:0;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:14px;
+    background:var(--bg);
+    margin-right:10px;
+  }
+  #search-results{
+    list-style:none;
+    margin:0;
+    padding:0;
+    overflow-y:auto;
+    flex:1;
+  }
+  #search-results li{
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+    cursor:pointer;
+  }
+  #search-results .name{
+    display:block;
+    font-size:14px;
+    color:var(--num);
+  }
+  #search-results .meta{
+    display:block;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:2px;
+  }
 </style>
 </head>
 <body>
@@ -597,6 +630,9 @@
       </button>
       <button id="report-btn" class="bell-btn" aria-label="Report">
         <svg viewBox="0 0 24 24"><rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="5" width="4" height="16" rx="1"/><rect x="17" y="13" width="4" height="8" rx="1"/></svg>
+      </button>
+      <button id="search-btn" class="bell-btn" aria-label="Search">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
       </button>
     </div>
     <button id="next" aria-label="Next month">&#8250;</button>
@@ -674,6 +710,16 @@
     <ul id="report-list"></ul>
   </div>
 
+  <div class="backdrop" id="search-backdrop"></div>
+  <div class="sheet" id="search-sheet">
+    <div class="sheet-top">
+      <input type="text" id="search-input" placeholder="Search" />
+      <button class="sheet-close" id="search-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="chip-row" id="search-chips"></div>
+    <ul id="search-results"></ul>
+  </div>
+
 <script>
   var view = new Date();
   view.setDate(1);
@@ -704,6 +750,12 @@
   var reportBackdrop = document.getElementById('report-backdrop');
   var reportSheet = document.getElementById('report-sheet');
   var reportList = document.getElementById('report-list');
+  var searchBtn = document.getElementById('search-btn');
+  var searchBackdrop = document.getElementById('search-backdrop');
+  var searchSheet = document.getElementById('search-sheet');
+  var searchInput = document.getElementById('search-input');
+  var searchChips = document.getElementById('search-chips');
+  var searchResults = document.getElementById('search-results');
   var mainView = document.getElementById('main-view');
   var notesView = document.getElementById('notes-view');
   var notesBtn = document.getElementById('notes-btn');
@@ -884,6 +936,7 @@
     if (!notesText.hidden) saveCurrentNote();
     closeReminders();
     closeReport();
+    closeSearch();
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
@@ -1044,6 +1097,85 @@
     presetChips.appendChild(chip);
   });
 
+  PRESETS.forEach(function(name){
+    var chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.textContent = name;
+    chip.addEventListener('click', function(){
+      searchInput.value = name;
+      renderSearch(name);
+    });
+    searchChips.appendChild(chip);
+  });
+
+  function jumpToDate(key){
+    var d = parseKey(key);
+    closeSearch();
+    view = new Date(d.getFullYear(), d.getMonth(), 1);
+    render();
+    openSheet(key, d);
+  }
+
+  function renderSearch(query){
+    searchResults.innerHTML = '';
+    var q = query.trim().toLowerCase();
+    if (!q) return;
+
+    var matches = [];
+    Object.keys(data).forEach(function(k){
+      (data[k] || []).forEach(function(item){
+        if (item.name.toLowerCase().indexOf(q) >= 0){
+          matches.push({ date: k, time: item.time, name: item.name });
+        }
+      });
+    });
+    matches.sort(function(a, b){
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
+    });
+
+    if (!matches.length){
+      var li = document.createElement('li');
+      li.textContent = 'No matches.';
+      searchResults.appendChild(li);
+      return;
+    }
+    matches.forEach(function(m){
+      var li = document.createElement('li');
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = m.name;
+      var meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = parseKey(m.date).toLocaleDateString('default', {weekday:'short', day:'numeric', month:'short'}) + ' · ' + formatTime(m.time);
+      li.appendChild(name);
+      li.appendChild(meta);
+      li.addEventListener('click', function(){ jumpToDate(m.date); });
+      searchResults.appendChild(li);
+    });
+  }
+
+  function openSearch(){
+    closeSheet();
+    closeReminders();
+    closeReport();
+    searchInput.value = '';
+    searchResults.innerHTML = '';
+    searchBackdrop.classList.add('open');
+    searchSheet.classList.add('open');
+    searchInput.focus();
+  }
+  function closeSearch(){
+    searchBackdrop.classList.remove('open');
+    searchSheet.classList.remove('open');
+  }
+
+  searchBtn.addEventListener('click', openSearch);
+  document.getElementById('search-close').addEventListener('click', closeSearch);
+  searchBackdrop.addEventListener('click', closeSearch);
+  searchInput.addEventListener('input', function(){ renderSearch(searchInput.value); });
+
   function renderAppts(){
     apptList.innerHTML = '';
     var items = (data[selectedKey] || []).slice().sort(function(a,b){
@@ -1186,6 +1318,7 @@
   function openReminders(){
     closeSheet();
     closeReport();
+    closeSearch();
     renderReminders();
     remindersBackdrop.classList.add('open');
     remindersSheet.classList.add('open');
@@ -1339,6 +1472,7 @@
   function openReport(){
     closeSheet();
     closeReminders();
+    closeSearch();
     renderReport();
     reportBackdrop.classList.add('open');
     reportSheet.classList.add('open');

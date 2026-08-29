@@ -532,6 +532,28 @@
     cursor:pointer;
     flex-shrink:0;
   }
+  #report-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    overflow-y:auto;
+    flex:1;
+  }
+  #report-list li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+    color:var(--num);
+    line-height:1.4;
+  }
+  #report-list .dot{
+    width:9px;
+    height:9px;
+    flex-shrink:0;
+  }
 </style>
 </head>
 <body>
@@ -541,6 +563,9 @@
       <h1 id="label"></h1>
       <button id="bell-btn" class="bell-btn" aria-label="Reminders">
         <svg viewBox="0 0 24 24"><path d="M12 2a1 1 0 0 0-1 1v1.06A7 7 0 0 0 5 11v4l-1.7 2.55A1 1 0 0 0 4 19h16a1 1 0 0 0 .8-1.45L19 15v-4a7 7 0 0 0-6-6.94V3a1 1 0 0 0-1-1zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>
+      </button>
+      <button id="report-btn" class="bell-btn" aria-label="Report">
+        <svg viewBox="0 0 24 24"><rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="5" width="4" height="16" rx="1"/><rect x="17" y="13" width="4" height="8" rx="1"/></svg>
       </button>
     </div>
     <button id="next" aria-label="Next month">&#8250;</button>
@@ -609,6 +634,16 @@
     </form>
   </div>
 
+  <div class="backdrop" id="report-backdrop"></div>
+  <div class="sheet" id="report-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-top">
+      <span></span>
+      <button class="sheet-close" id="report-close" aria-label="Close">&times;</button>
+    </div>
+    <ul id="report-list"></ul>
+  </div>
+
 <script>
   var view = new Date();
   view.setDate(1);
@@ -633,6 +668,10 @@
   var reminderList = document.getElementById('reminder-list');
   var reminderForm = document.getElementById('reminder-form');
   var reminderText = document.getElementById('reminder-text');
+  var reportBtn = document.getElementById('report-btn');
+  var reportBackdrop = document.getElementById('report-backdrop');
+  var reportSheet = document.getElementById('report-sheet');
+  var reportList = document.getElementById('report-list');
   var mainView = document.getElementById('main-view');
   var notesView = document.getElementById('notes-view');
   var notesBtn = document.getElementById('notes-btn');
@@ -810,6 +849,8 @@
 
   function openSheet(key, d){
     if (!notesText.hidden) saveCurrentNote();
+    closeReminders();
+    closeReport();
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
@@ -1090,6 +1131,7 @@
 
   function openReminders(){
     closeSheet();
+    closeReport();
     renderReminders();
     remindersBackdrop.classList.add('open');
     remindersSheet.classList.add('open');
@@ -1114,6 +1156,128 @@
     renderReminders();
     updateBellState();
   });
+
+  var COLOR_LABEL = { binge:'red', pink:'pink', amber:'amber', green:'green', blue:'blue', black:'black' };
+  var WEEKDAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  function parseKey(key){
+    var parts = key.split('-');
+    return new Date(parseInt(parts[0],10), parseInt(parts[1],10) - 1, parseInt(parts[2],10));
+  }
+
+  function computeReport(){
+    var MIN_TOTAL = 7, MIN_GROUP = 4, THRESHOLD = 0.25;
+
+    var allKeys = {};
+    Object.keys(data).forEach(function(k){ if (data[k] && data[k].length) allKeys[k] = 1; });
+    Object.keys(dots).forEach(function(k){ if (dots[k] && Object.keys(dots[k]).length) allKeys[k] = 1; });
+    Object.keys(notesStore).forEach(function(k){ allKeys[k] = 1; });
+    var keys = Object.keys(allKeys);
+    if (!keys.length) return null;
+
+    var parsedDates = keys.map(parseKey);
+    var min = new Date(Math.min.apply(null, parsedDates));
+    var max = new Date(Math.max.apply(null, parsedDates));
+
+    var days = [];
+    var cur = new Date(min.getFullYear(), min.getMonth(), min.getDate());
+    while (cur <= max){
+      var k = dateKey(cur);
+      days.push({
+        apptCount: (data[k] || []).length,
+        dotCounts: dots[k] || {},
+        weekday: cur.getDay()
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
+    if (days.length < MIN_TOTAL) return null;
+
+    function hasColor(day, color){ return (day.dotCounts[color] || 0) > 0; }
+
+    var conditions = [];
+    conditions.push({ test: function(d){ return d.apptCount >= 2; }, phrase: 'you have 2 or more appointments' });
+    conditions.push({ test: function(d){ return d.apptCount === 0; }, phrase: 'you have no appointments' });
+    WEEKDAY_NAMES.forEach(function(name, idx){
+      conditions.push({ test: function(d){ return d.weekday === idx; }, phrase: "it's a " + name });
+    });
+    COLORS.forEach(function(c){
+      conditions.push({ test: function(d){ return hasColor(d, c); }, phrase: 'you have a ' + COLOR_LABEL[c] + ' dot', color: c });
+    });
+
+    var candidates = [];
+    conditions.forEach(function(cond){
+      var inGroup = days.filter(cond.test);
+      var outGroup = days.filter(function(d){ return !cond.test(d); });
+      if (inGroup.length < MIN_GROUP || outGroup.length < MIN_GROUP) return;
+      COLORS.forEach(function(outColor){
+        if (cond.color === outColor) return;
+        var rateIn = inGroup.filter(function(d){ return hasColor(d, outColor); }).length / inGroup.length;
+        var rateOut = outGroup.filter(function(d){ return hasColor(d, outColor); }).length / outGroup.length;
+        var diff = rateIn - rateOut;
+        if (Math.abs(diff) >= THRESHOLD){
+          candidates.push({ diff: diff, rateIn: rateIn, nIn: inGroup.length, phrase: cond.phrase, color: outColor });
+        }
+      });
+    });
+
+    candidates.sort(function(a, b){ return Math.abs(b.diff) - Math.abs(a.diff); });
+    return candidates.slice(0, 6);
+  }
+
+  function renderReport(){
+    reportList.innerHTML = '';
+    var candidates = computeReport();
+
+    if (!candidates){
+      var li = document.createElement('li');
+      li.textContent = 'Not enough data yet.';
+      reportList.appendChild(li);
+      return;
+    }
+    if (!candidates.length){
+      var li2 = document.createElement('li');
+      li2.textContent = 'No clear patterns yet.';
+      reportList.appendChild(li2);
+      return;
+    }
+    candidates.forEach(function(c){
+      var li = document.createElement('li');
+      var dot = document.createElement('span');
+      dot.className = 'dot ' + c.color;
+      var text = document.createElement('span');
+      var label = COLOR_LABEL[c.color];
+      var sentence;
+      if (c.rateIn >= 0.999 && c.nIn >= 3){
+        sentence = 'You always have a ' + label + ' dot when ' + c.phrase + '.';
+      } else if (c.rateIn <= 0.001 && c.nIn >= 3){
+        sentence = 'You never have a ' + label + ' dot when ' + c.phrase + '.';
+      } else if (c.diff > 0){
+        sentence = "You're more likely to have a " + label + ' dot when ' + c.phrase + '.';
+      } else {
+        sentence = "You're less likely to have a " + label + ' dot when ' + c.phrase + '.';
+      }
+      text.textContent = sentence;
+      li.appendChild(dot);
+      li.appendChild(text);
+      reportList.appendChild(li);
+    });
+  }
+
+  function openReport(){
+    closeSheet();
+    closeReminders();
+    renderReport();
+    reportBackdrop.classList.add('open');
+    reportSheet.classList.add('open');
+  }
+  function closeReport(){
+    reportBackdrop.classList.remove('open');
+    reportSheet.classList.remove('open');
+  }
+
+  reportBtn.addEventListener('click', openReport);
+  document.getElementById('report-close').addEventListener('click', closeReport);
+  reportBackdrop.addEventListener('click', closeReport);
 
   apptForm.addEventListener('submit', function(e){
     e.preventDefault();

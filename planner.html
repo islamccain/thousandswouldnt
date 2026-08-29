@@ -19,6 +19,7 @@
     --header-text:#f4f1ec;
     --today:#c04863;
     --binge:#e13d3d;
+    --note:#6b5b73;
     --num:#3c3c3c;
     --muted:#8b8b8b;
     --mon:#b7cbe0;
@@ -145,6 +146,10 @@
     background:var(--binge);
     opacity:1;
   }
+  .dot.note{
+    background:var(--note);
+    opacity:1;
+  }
 
   .backdrop{
     position:fixed;
@@ -202,6 +207,90 @@
     cursor:pointer;
     width:32px;
     height:32px;
+  }
+  .sheet-actions{
+    display:flex;
+    align-items:center;
+    gap:2px;
+  }
+  .icon-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .notes-icon{
+    width:18px;
+    height:18px;
+    border-radius:4px;
+    background:var(--note);
+    opacity:.85;
+    padding:0;
+  }
+  #notes-back{
+    font-size:20px;
+    color:var(--muted);
+    width:32px;
+    height:32px;
+    margin-bottom:6px;
+  }
+  #notes-view{
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
+  }
+  #notes-view[hidden]{ display:none; }
+  #lock-panel{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    padding:30px 0;
+  }
+  #lock-panel[hidden]{ display:none; }
+  #pin-input{
+    width:120px;
+    text-align:center;
+    letter-spacing:14px;
+    font-size:20px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:10px 0 10px 14px;
+    background:var(--bg);
+  }
+  #pin-input.error{
+    border-color:var(--binge);
+    animation:shake .3s;
+  }
+  #pin-hint{
+    font-size:11px;
+    color:var(--muted);
+    height:12px;
+    margin:0;
+  }
+  #forgot-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:15px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  @keyframes shake{
+    25%{ transform:translateX(-6px); }
+    75%{ transform:translateX(6px); }
+  }
+  #notes-text{
+    flex:1;
+    min-height:120px;
+    resize:none;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:10px;
+    font-size:14px;
+    font-family:inherit;
+    background:var(--bg);
+    color:var(--num);
   }
   .log-row{
     display:flex;
@@ -323,18 +412,32 @@
     <div class="sheet-handle"></div>
     <div class="sheet-top">
       <h2 id="sheet-date"></h2>
-      <button class="sheet-close" id="sheet-close" aria-label="Close">&times;</button>
+      <div class="sheet-actions">
+        <button id="notes-btn" class="icon-btn notes-icon" aria-label="Notes"></button>
+        <button class="sheet-close" id="sheet-close" aria-label="Close">&times;</button>
+      </div>
     </div>
-    <div class="log-row">
-      <button id="binge-add" class="binge-btn" aria-label="Log"></button>
-      <div id="binge-dots" class="binge-dots"></div>
+    <div id="main-view">
+      <div class="log-row">
+        <button id="binge-add" class="binge-btn" aria-label="Log"></button>
+        <div id="binge-dots" class="binge-dots"></div>
+      </div>
+      <ul id="appt-list"></ul>
+      <form id="appt-form">
+        <input type="time" id="appt-time" required />
+        <input type="text" id="appt-name" placeholder="Appointment" required />
+        <button type="submit" aria-label="Add">+</button>
+      </form>
     </div>
-    <ul id="appt-list"></ul>
-    <form id="appt-form">
-      <input type="time" id="appt-time" required />
-      <input type="text" id="appt-name" placeholder="Appointment" required />
-      <button type="submit" aria-label="Add">+</button>
-    </form>
+    <div id="notes-view" hidden>
+      <button id="notes-back" class="icon-btn" aria-label="Back">&#8249;</button>
+      <div id="lock-panel">
+        <input id="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" />
+        <p id="pin-hint"></p>
+        <button id="forgot-btn" type="button">&#8635;</button>
+      </div>
+      <textarea id="notes-text" hidden></textarea>
+    </div>
   </div>
 
 <script>
@@ -353,6 +456,15 @@
   var apptName = document.getElementById('appt-name');
   var bingeBtn = document.getElementById('binge-add');
   var bingeDots = document.getElementById('binge-dots');
+  var mainView = document.getElementById('main-view');
+  var notesView = document.getElementById('notes-view');
+  var notesBtn = document.getElementById('notes-btn');
+  var notesBack = document.getElementById('notes-back');
+  var lockPanel = document.getElementById('lock-panel');
+  var pinInput = document.getElementById('pin-input');
+  var pinHint = document.getElementById('pin-hint');
+  var forgotBtn = document.getElementById('forgot-btn');
+  var notesText = document.getElementById('notes-text');
 
   var STORE_KEY = 'planner-appointments';
   var data = {};
@@ -362,11 +474,65 @@
   var binges = {};
   try{ binges = JSON.parse(localStorage.getItem(BINGE_KEY)) || {}; }catch(e){ binges = {}; }
 
+  var NOTES_KEY = 'planner-notes';
+  var notesStore = {};
+  try{ notesStore = JSON.parse(localStorage.getItem(NOTES_KEY)) || {}; }catch(e){ notesStore = {}; }
+
+  var NOTES_META_KEY = 'planner-notes-meta';
+  var notesMeta = null;
+  try{ notesMeta = JSON.parse(localStorage.getItem(NOTES_META_KEY)) || null; }catch(e){ notesMeta = null; }
+
+  var sessionKey = null;
+  var pinMode = null;
+  var pendingPin = null;
+  var saveTimer = null;
+
   function save(){
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
   }
   function saveBinges(){
     localStorage.setItem(BINGE_KEY, JSON.stringify(binges));
+  }
+  function saveNotesStore(){
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notesStore));
+  }
+  function saveNotesMeta(){
+    localStorage.setItem(NOTES_META_KEY, JSON.stringify(notesMeta));
+  }
+
+  function toB64(buf){
+    var bytes = new Uint8Array(buf), bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function fromB64(str){
+    var bin = atob(str), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+  function deriveKey(pin, saltB64){
+    var enc = new TextEncoder();
+    var salt = new Uint8Array(fromB64(saltB64));
+    return crypto.subtle.importKey('raw', enc.encode(pin), {name:'PBKDF2'}, false, ['deriveKey'])
+      .then(function(base){
+        return crypto.subtle.deriveKey(
+          { name:'PBKDF2', salt:salt, iterations:150000, hash:'SHA-256' },
+          base,
+          { name:'AES-GCM', length:256 },
+          false,
+          ['encrypt','decrypt']
+        );
+      });
+  }
+  function encryptText(key, text){
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, new TextEncoder().encode(text))
+      .then(function(ct){ return { iv: toB64(iv), ct: toB64(ct) }; });
+  }
+  function decryptText(key, rec){
+    var iv = new Uint8Array(fromB64(rec.iv));
+    return crypto.subtle.decrypt({name:'AES-GCM', iv:iv}, key, fromB64(rec.ct))
+      .then(function(pt){ return new TextDecoder().decode(pt); });
   }
   function pad(n){ return n < 10 ? '0' + n : '' + n; }
   function dateKey(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -423,6 +589,11 @@
         bdot.className = 'dot binge';
         marks.appendChild(bdot);
       }
+      if (notesStore[key]){
+        var ndot = document.createElement('span');
+        ndot.className = 'dot note';
+        marks.appendChild(ndot);
+      }
       if (marks.children.length) cell.appendChild(marks);
 
       cell.addEventListener('click', (function(d, k){
@@ -440,10 +611,13 @@
   }
 
   function openSheet(key, d){
+    if (!notesText.hidden) saveCurrentNote();
     selectedKey = key;
     sheetDate.textContent = d.toLocaleDateString('default',{weekday:'short', day:'numeric', month:'short'});
     renderAppts();
     renderBinges();
+    notesView.hidden = true;
+    mainView.hidden = false;
     backdrop.classList.add('open');
     sheet.classList.add('open');
     apptTime.value = '';
@@ -451,10 +625,139 @@
   }
 
   function closeSheet(){
+    if (!notesText.hidden) saveCurrentNote();
     backdrop.classList.remove('open');
     sheet.classList.remove('open');
     selectedKey = null;
   }
+
+  function openNotesView(){
+    mainView.hidden = true;
+    notesView.hidden = false;
+    if (sessionKey){
+      showNoteEditor();
+    } else if (notesMeta){
+      pinMode = 'unlock';
+      showPinPrompt();
+    } else {
+      pinMode = 'create';
+      pendingPin = null;
+      showPinPrompt();
+    }
+  }
+
+  function showPinPrompt(){
+    notesText.hidden = true;
+    lockPanel.hidden = false;
+    pinInput.value = '';
+    pinHint.textContent = pinMode === 'confirm' ? 'again' : '';
+    pinInput.classList.remove('error');
+    pinInput.focus();
+  }
+
+  function showNoteEditor(){
+    lockPanel.hidden = true;
+    notesText.hidden = false;
+    var rec = notesStore[selectedKey];
+    if (rec){
+      decryptText(sessionKey, rec).then(function(text){
+        notesText.value = text;
+      }).catch(function(){
+        notesText.value = '';
+      });
+    } else {
+      notesText.value = '';
+    }
+    notesText.focus();
+  }
+
+  function saveCurrentNote(){
+    if (!selectedKey || !sessionKey) return;
+    var text = notesText.value;
+    if (!text.trim()){
+      if (notesStore[selectedKey]){
+        delete notesStore[selectedKey];
+        saveNotesStore();
+        render();
+      }
+      return;
+    }
+    encryptText(sessionKey, text).then(function(rec){
+      notesStore[selectedKey] = rec;
+      saveNotesStore();
+      render();
+    });
+  }
+
+  function pinFail(){
+    pinInput.classList.add('error');
+    pinInput.value = '';
+    setTimeout(function(){ pinInput.classList.remove('error'); }, 300);
+  }
+
+  notesBtn.addEventListener('click', openNotesView);
+  notesBack.addEventListener('click', function(){
+    if (!notesText.hidden) saveCurrentNote();
+    notesView.hidden = true;
+    mainView.hidden = false;
+  });
+
+  pinInput.addEventListener('input', function(){
+    var val = pinInput.value.replace(/[^0-9]/g, '');
+    pinInput.value = val;
+    if (val.length !== 4) return;
+
+    if (pinMode === 'create'){
+      pendingPin = val;
+      pinMode = 'confirm';
+      showPinPrompt();
+    } else if (pinMode === 'confirm'){
+      if (val === pendingPin){
+        var salt = toB64(crypto.getRandomValues(new Uint8Array(16)).buffer);
+        deriveKey(val, salt).then(function(key){
+          return encryptText(key, 'ok').then(function(check){
+            notesMeta = { salt: salt, check: check };
+            saveNotesMeta();
+            sessionKey = key;
+            showNoteEditor();
+          });
+        });
+      } else {
+        pinFail();
+        pinMode = 'create';
+        pendingPin = null;
+      }
+    } else if (pinMode === 'unlock'){
+      deriveKey(val, notesMeta.salt).then(function(key){
+        return decryptText(key, notesMeta.check).then(function(plain){
+          if (plain === 'ok'){
+            sessionKey = key;
+            showNoteEditor();
+          } else {
+            pinFail();
+          }
+        });
+      }).catch(function(){ pinFail(); });
+    }
+  });
+
+  forgotBtn.addEventListener('click', function(){
+    if (!confirm('Forgotten PIN deletes all notes. Continue?')) return;
+    notesStore = {};
+    notesMeta = null;
+    sessionKey = null;
+    saveNotesStore();
+    localStorage.removeItem(NOTES_META_KEY);
+    pinMode = 'create';
+    pendingPin = null;
+    showPinPrompt();
+    render();
+  });
+
+  notesText.addEventListener('input', function(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveCurrentNote, 600);
+  });
 
   function renderAppts(){
     apptList.innerHTML = '';

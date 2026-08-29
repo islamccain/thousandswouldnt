@@ -404,6 +404,15 @@
     border-radius:50%;
     cursor:pointer;
   }
+  .clear-btn{
+    display:block;
+    margin:14px auto 0;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:12px;
+    cursor:pointer;
+  }
 
   #reminder-list{
     list-style:none;
@@ -643,6 +652,7 @@
       <button class="swatch black" data-color="black" aria-label="Black"></button>
     </div>
     <div class="tally" id="log-tally"></div>
+    <button type="button" id="log-clear" class="clear-btn">Clear</button>
   </div>
 
   <div class="backdrop" id="reminders-backdrop"></div>
@@ -688,6 +698,7 @@
   var logBackdrop = document.getElementById('log-backdrop');
   var logDialog = document.getElementById('log-dialog');
   var logTally = document.getElementById('log-tally');
+  var logClear = document.getElementById('log-clear');
   var bellBtn = document.getElementById('bell-btn');
   var remindersBackdrop = document.getElementById('reminders-backdrop');
   var remindersSheet = document.getElementById('reminders-sheet');
@@ -1113,6 +1124,14 @@
 
   logBtn.addEventListener('click', openLogDialog);
   logBackdrop.addEventListener('click', closeLogDialog);
+
+  logClear.addEventListener('click', function(){
+    if (!selectedKey) return;
+    delete dots[selectedKey];
+    saveDots();
+    renderTally();
+    render();
+  });
 
   document.querySelectorAll('.swatch').forEach(function(btn){
     btn.addEventListener('click', function(){
